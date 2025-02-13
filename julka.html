@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>Animowane Serduszko</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; background-color: white; }
+  </style>
+</head>
+<body>
+<script>
+let heartPoints = [];
+let totalPoints = 500;
+let currentPoint = 0;
+let textToShow = "Julka + Kuba";
+let equationText = "(x² + y² - 1)³ - x²y³ = 0";
+let currentTextIndex = 0;
+let textTimer = 0;
+let textDelay = 20;
+let heartDone = false;
+let imgCat, imgTaylor, imgAdam;
+let showImage = false;
+
+// 1. Wklej swoje linki do obrazków (bezpośrednie adresy .jpeg/.jpg/.png/.gif):
+function preload() {
+  imgCat    = loadImage("https://i.imgur.com/8CLu41f.jpeg");  // Kot (w sercu)
+  imgAdam   = loadImage("https://i.imgur.com/F2zcB8r.jpeg");  // Adam (po lewej)
+  imgTaylor = loadImage("https://i.imgur.com/VTgREDy.jpeg");  // Taylor (po prawej)
+}
+
+// 2. GENEROWANIE PUNKTÓW SERCA
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  angleMode(RADIANS);
+
+  // Wyliczamy punkty serca na podstawie parametru t (0..2π)
+  for (let i = 0; i <= totalPoints; i++) {
+    let t = map(i, 0, totalPoints, 0, TWO_PI);
+    let x = 16 * pow(sin(t), 3);
+    let y = -(13 * cos(t) - 5 * cos(2 * t) - 2 * cos(3 * t) - cos(4 * t));
+    x *= 20;
+    y *= 20;
+    heartPoints.push(createVector(x, y));
+  }
+}
+
+// 3. RYSOWANIE
+function draw() {
+  background(255);
+  
+  // Przesunięcie układu, by serce było na środku ekranu
+  translate(width / 2, height / 2 - 70);
+
+  // --- Oś X i Y (możesz usunąć, jeśli niepotrzebne) ---
+  stroke(0);
+  strokeWeight(1);
+  line(-width / 2, 0, width / 2, 0);
+  line(0, -height / 2, 0, height / 2);
+  // Strzałki osi
+  line(width / 2 - 10, -5, width / 2, 0);
+  line(width / 2 - 10, 5, width / 2, 0);
+  line(-5, -height / 2 + 10, 0, -height / 2);
+  line(5, -height / 2 + 10, 0, -height / 2);
+  // Oznaczenia osi
+  textAlign(RIGHT, CENTER);
+  textSize(16);
+  fill(0);
+  text("X", width / 2 - 15, 15);
+  text("Y", -10, -height / 2 + 20);
+
+  // --- Rysowanie serca ---
+  stroke(255, 0, 0);
+  strokeWeight(3);
+  noFill();
+  beginShape();
+  for (let i = 0; i < currentPoint; i++) {
+    vertex(heartPoints[i].x, heartPoints[i].y);
+  }
+  endShape();
+  
+  // Animacja "wypełniania" serca
+  if (currentPoint < heartPoints.length) {
+    currentPoint++;
+    if (currentPoint >= heartPoints.length) {
+      heartDone = true;
+    }
+  }
+  
+  // --- Animacja tekstu ---
+  if (heartDone) {
+    push();
+    // Przesuwamy się nieco w dół (pod serce)
+    translate(0, 80);
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    fill(0);
+    noStroke();
+    
+    // Litera po literze
+    if (currentTextIndex < textToShow.length) {
+      textTimer++;
+      if (textTimer > textDelay) {
+        textTimer = 0;
+        currentTextIndex++;
+      }
+    }
+    let displayText = textToShow.substring(0, currentTextIndex);
+    text(displayText, 0, 0);
+    pop();
+    
+    // Gdy napis się wyświetli w całości, pokazujemy obrazki
+    if (currentTextIndex >= textToShow.length) {
+      showImage = true;
+    }
+  }
+
+  // --- Wyświetlanie równania serca ---
+  if (heartDone) {
+    push();
+    translate(0, 120);
+    textAlign(CENTER, CENTER);
+    textSize(18);
+    fill(0);
+    text(equationText, 0, 0);
+    pop();
+  }
+
+  // --- Obrazki pojawiają się dopiero po wyświetleniu całego tekstu ---
+  if (showImage) {
+    imageMode(CENTER);
+    
+    // Kot w samym środku serca
+    // Zmodyfikuj współrzędne, jeśli chcesz przesunąć kota
+    image(imgCat, 0, -20, 150, 150);
+    
+    // Adam po lewej (x ujemny)
+    image(imgAdam, -500, 0, 300, 300);
+    
+    // Taylor po prawej (x dodatni)
+    image(imgTaylor, 500, -0, 300, 300);
+  }
+}
+
+// 4. ZMIANA ROZMIARU OKNA
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+</script>
+</body>
+</html>
